@@ -8,8 +8,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 class AuthService {
-  constructor(employeeRepo) {
+  constructor(employeeRepo, userRepo = null) {
     this.employeeRepo = employeeRepo;
+    this.userRepo = userRepo;
     this.JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
     this.TOKEN_EXPIRY = '8h';
     this.SALT_ROUNDS = 10;
@@ -154,6 +155,95 @@ class AuthService {
    */
   verifyToken(token) {
     return jwt.verify(token, this.JWT_SECRET);
+  }
+
+  /**
+   * Register new user (customer)
+   */
+  async registerUser(userId, password, phoneNumber = null) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!password) {
+      throw new Error('Password is required');
+    }
+
+    if (!this.userRepo) {
+      throw new Error('User repository not configured');
+    }
+
+    // Check if user already exists
+    const existingUser = await this.userRepo.findById(userId);
+    if (existingUser) {
+      throw new Error('User ID already exists');
+    }
+
+    // Validate phone number if provided
+    if (phoneNumber && !/^\d{10}$/.test(phoneNumber)) {
+      throw new Error('Phone number must be 10 digits');
+    }
+
+    // Hash password
+    const passwordHash = await this.hashPassword(password);
+
+    // Create user
+    const user = await this.userRepo.create({
+      userId,
+      phoneNumber,
+      passwordHash
+    });
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user.userId, type: 'user' },
+      this.JWT_SECRET,
+      { expiresIn: this.TOKEN_EXPIRY }
+    );
+
+    return {
+      user: {
+        userId: user.userId,
+        phoneNumber: user.phoneNumber,
+        formattedPhone: user.formattedPhone
+      },
+      token
+    };
+  }
+
+  /**
+   * Login user (customer)
+   */
+  async loginUser(userId, password) {
+    if (!this.userRepo) {
+      throw new Error('User repository not configured');
+    }
+
+    const user = await this.userRepo.findByIdWithPassword(userId);
+    
+    if (!user || !user.passwordHash) {
+      throw new Error('Invalid credentials');
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    
+    if (!isValid) {
+      throw new Error('Invalid credentials');
+    }
+
+    const token = jwt.sign(
+      { userId: user.userId, type: 'user' },
+      this.JWT_SECRET,
+      { expiresIn: this.TOKEN_EXPIRY }
+    );
+
+    return {
+      user: {
+        userId: user.userId,
+        phoneNumber: user.phoneNumber
+      },
+      token
+    };
   }
 }
 

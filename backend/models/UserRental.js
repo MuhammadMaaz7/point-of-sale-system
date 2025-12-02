@@ -6,7 +6,7 @@
 class UserRental {
   constructor(data = {}) {
     this.id = data.id || null;
-    this.phoneNumber = data.phoneNumber || null;
+    this.userId = data.userId || null;
     this.rentalId = data.rentalId || null;
     this.rentalDate = data.rentalDate || null;
     this.dueDate = data.dueDate || null;
@@ -19,8 +19,8 @@ class UserRental {
 
   // Validation
   validate() {
-    if (!this.phoneNumber) {
-      throw new Error('Phone number is required');
+    if (!this.userId) {
+      throw new Error('User ID is required');
     }
     if (!this.rentalId) {
       throw new Error('Rental ID is required');
@@ -57,7 +57,7 @@ class UserRental {
   toJSON() {
     return {
       id: this.id,
-      phoneNumber: this.phoneNumber,
+      userId: this.userId,
       rentalId: this.rentalId,
       rentalDate: this.rentalDate,
       dueDate: this.dueDate,

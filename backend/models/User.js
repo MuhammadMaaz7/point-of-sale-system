@@ -5,17 +5,19 @@
  */
 class User {
   constructor(data = {}) {
+    this.userId = data.userId || null;
     this.phoneNumber = data.phoneNumber || null;
+    this.passwordHash = data.passwordHash || null;
     this.createdAt = data.createdAt || null;
     this.updatedAt = data.updatedAt || null;
   }
 
   // Validation
   validate() {
-    if (!this.phoneNumber) {
-      throw new Error('Phone number is required');
+    if (!this.userId) {
+      throw new Error('User ID is required');
     }
-    if (!/^\d{10}$/.test(this.phoneNumber)) {
+    if (this.phoneNumber && !/^\d{10}$/.test(this.phoneNumber)) {
       throw new Error('Phone number must be 10 digits');
     }
   }
@@ -30,6 +32,7 @@ class User {
   // Convert to plain object
   toJSON() {
     return {
+      userId: this.userId,
       phoneNumber: this.phoneNumber,
       formattedPhone: this.formattedPhone,
       createdAt: this.createdAt,

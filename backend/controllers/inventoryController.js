@@ -57,6 +57,61 @@ export const updateItemQuantity = async (req, res, next) => {
   }
 };
 
+export const getItem = async (req, res, next) => {
+  try {
+    const { itemId } = req.params;
+    const pool = getPool();
+    const itemRepo = new ItemRepository(pool);
+    const item = await itemRepo.findById(itemId);
+    
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        error: 'Item not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: item
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateItem = async (req, res, next) => {
+  try {
+    const { itemId } = req.params;
+    const pool = getPool();
+    const itemRepo = new ItemRepository(pool);
+    const item = await itemRepo.update(itemId, req.body);
+    
+    res.json({
+      success: true,
+      data: item
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteItem = async (req, res, next) => {
+  try {
+    const { itemId } = req.params;
+    const pool = getPool();
+    const itemRepo = new ItemRepository(pool);
+    await itemRepo.delete(itemId);
+    
+    res.json({
+      success: true,
+      message: 'Item deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getLowStock = async (req, res, next) => {
   try {
     const threshold = req.query.threshold || 10;

@@ -83,6 +83,52 @@ class SaleRepository extends BaseRepository {
     await this.pool.execute(query, [saleId]);
     return true;
   }
+
+  async findByDateRange(startDate, endDate) {
+    let query = 'SELECT * FROM sales';
+    const params = [];
+    
+    if (startDate && endDate) {
+      query += ' WHERE saleDate BETWEEN ? AND ?';
+      params.push(startDate, endDate);
+    } else if (startDate) {
+      query += ' WHERE saleDate >= ?';
+      params.push(startDate);
+    } else if (endDate) {
+      query += ' WHERE saleDate <= ?';
+      params.push(endDate);
+    }
+    
+    query += ' ORDER BY saleDate DESC';
+    
+    const [rows] = await this.pool.execute(query, params);
+    return rows.map(row => new Sale(row));
+  }
+
+  async createReturn(returnData) {
+    // Get item name from items table
+    const itemQuery = 'SELECT name FROM items WHERE itemId = ?';
+    const [itemRows] = await this.pool.execute(itemQuery, [returnData.itemId]);
+    const itemName = itemRows.length > 0 ? itemRows[0].name : 'Unknown Item';
+    
+    const query = `INSERT INTO returns (saleId, itemId, itemName, quantity, refundAmount, reason, employeeId) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const [result] = await this.pool.execute(query, [
+      returnData.saleId,
+      returnData.itemId,
+      itemName,
+      returnData.quantity,
+      returnData.refundAmount,
+      returnData.reason,
+      returnData.processedBy
+    ]);
+    
+    return {
+      returnId: result.insertId,
+      ...returnData,
+      itemName
+    };
+  }
 }
 
 export default SaleRepository;

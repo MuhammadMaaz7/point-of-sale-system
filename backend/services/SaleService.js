@@ -130,6 +130,50 @@ class SaleService {
   async getAllSales() {
     return await this.saleRepo.findAll();
   }
+
+  /**
+   * Process return for a sale item
+   */
+  async processReturn(saleId, itemId, quantity, reason, employeeId) {
+    const sale = await this.saleRepo.findById(saleId);
+    if (!sale) {
+      throw new Error(`Sale ${saleId} not found`);
+    }
+
+    // Find the sale item
+    const saleItem = sale.items?.find(item => item.itemId === itemId);
+    if (!saleItem) {
+      throw new Error(`Item ${itemId} not found in sale ${saleId}`);
+    }
+
+    if (quantity > saleItem.quantity) {
+      throw new Error(`Cannot return more than purchased quantity (${saleItem.quantity})`);
+    }
+
+    // Calculate refund amount
+    const refundAmount = saleItem.unitPrice * quantity;
+
+    // Update inventory - add items back
+    await this.itemRepo.updateQuantity(itemId, quantity);
+
+    // Create return record
+    const returnData = {
+      saleId,
+      itemId,
+      quantity,
+      refundAmount,
+      reason: reason || 'No reason provided',
+      processedBy: employeeId
+    };
+
+    const returnRecord = await this.saleRepo.createReturn(returnData);
+
+    return {
+      returnRecord,
+      refundAmount,
+      message: 'Return processed successfully'
+    };
+  }
 }
 
 export default SaleService;

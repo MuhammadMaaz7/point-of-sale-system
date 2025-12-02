@@ -18,17 +18,20 @@ const getSaleService = () => {
 
 export const createSale = async (req, res, next) => {
   try {
-    const { cartItems, couponCode } = req.body;
+    const { items, cartItems, couponCode } = req.body;
     const employeeId = req.employee.employeeId;
 
-    if (!cartItems || cartItems.length === 0) {
+    // Support both 'items' and 'cartItems' field names
+    const saleItems = items || cartItems;
+
+    if (!saleItems || saleItems.length === 0) {
       return res.status(400).json({ error: 'Cart cannot be empty' });
     }
 
     const saleService = getSaleService();
     const sale = await saleService.processSale(
       employeeId,
-      cartItems,
+      saleItems,
       couponCode
     );
 
@@ -50,6 +53,58 @@ export const getSales = async (req, res, next) => {
     res.json({
       success: true,
       data: sales
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSale = async (req, res, next) => {
+  try {
+    const { saleId } = req.params;
+    const pool = getPool();
+    const saleRepo = new SaleRepository(pool);
+    const sale = await saleRepo.findWithItems(saleId);
+    
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        error: 'Sale not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: sale
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const processReturn = async (req, res, next) => {
+  try {
+    const { saleId, itemId, quantity, reason } = req.body;
+    const employeeId = req.employee.employeeId;
+
+    if (!saleId || !itemId || !quantity) {
+      return res.status(400).json({ 
+        error: 'Sale ID, item ID, and quantity required' 
+      });
+    }
+
+    const saleService = getSaleService();
+    const returnRecord = await saleService.processReturn(
+      saleId,
+      itemId,
+      quantity,
+      reason,
+      employeeId
+    );
+
+    res.status(201).json({
+      success: true,
+      data: returnRecord
     });
   } catch (error) {
     next(error);

@@ -30,6 +30,28 @@ class ReportService {
     return [];
   }
 
+  /**
+   * Get sales report for a date range
+   */
+  async getSalesReport(startDate, endDate) {
+    const sales = await this.saleRepo.findByDateRange(startDate, endDate);
+    
+    const totalSales = sales.length;
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+    const totalTax = sales.reduce((sum, sale) => sum + sale.taxAmount, 0);
+    const totalDiscount = sales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+    
+    return {
+      startDate,
+      endDate,
+      totalSales,
+      totalRevenue,
+      totalTax,
+      totalDiscount,
+      sales
+    };
+  }
+
 }
 
 export default ReportService;

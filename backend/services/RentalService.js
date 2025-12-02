@@ -15,14 +15,15 @@ class RentalService {
   /**
    * Process rental transaction
    * Replaces POR.endPOS() and Management.addRental() from Java
-   * Eliminates primitive obsession with phone numbers
    */
-  async rentItem(phoneNumber, rentalId) {
-    this.validatePhoneNumber(phoneNumber);
+  async rentItem(userId, rentalId) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
 
-    let user = await this.userRepo.findById(phoneNumber);
+    let user = await this.userRepo.findById(userId);
     if (!user) {
-      user = await this.userRepo.create({ phoneNumber });
+      throw new Error('User not found. Please register first.');
     }
 
     const rental = await this.rentalRepo.findById(rentalId);
@@ -101,20 +102,6 @@ class RentalService {
     return Math.round(rentalPrice * this.LATE_FEE_RATE * daysLate * 100) / 100;
   }
 
-  /**
-   * Validate phone number
-   * Eliminates primitive obsession smell
-   */
-  validatePhoneNumber(phoneNumber) {
-    if (!phoneNumber) {
-      throw new Error('Phone number is required');
-    }
-
-    const phoneStr = phoneNumber.toString();
-    if (!/^\d{10}$/.test(phoneStr)) {
-      throw new Error('Phone number must be 10 digits');
-    }
-  }
 }
 
 export default RentalService;
