@@ -91,3 +91,18 @@ export const deleteCoupon = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getActiveCoupons = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const couponRepo = new CouponRepository(pool);
+    const coupons = await couponRepo.findActive();
+    
+    res.json({
+      success: true,
+      data: coupons
+    });
+  } catch (error) {
+    next(error);
+  }
+};

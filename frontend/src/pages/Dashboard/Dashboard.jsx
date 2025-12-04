@@ -131,7 +131,7 @@ const Dashboard = () => {
       description: 'Create a new rental',
       icon: Repeat,
       color: 'warning',
-      path: '/rentals/process',
+      path: '/rentals',
     },
     {
       title: 'View Reports',
@@ -143,39 +143,45 @@ const Dashboard = () => {
   ];
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome message */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.firstName}!
+      <div className="animate-slide-up">
+        <h1 className="text-3xl font-bold text-gradient mb-2">
+          Welcome back, {user?.firstName}! 👋
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-gray-600 text-lg">
           Here's what's happening with your store today.
         </p>
       </div>
       
       {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <Card key={index} variant="elevated" padding="default">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+          <Card 
+            key={index} 
+            className="animate-scale-in bg-white shadow-medium hover:shadow-strong transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <div className="flex items-start justify-between p-6">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-3">{stat.title}</p>
+                <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
                 {stat.trend && (
-                  <p className="text-sm text-success-600 mt-1 flex items-center gap-1">
-                    <TrendingUp size={14} />
-                    {stat.trend} from yesterday
-                  </p>
+                  <div className="flex items-center gap-1 text-sm font-medium text-success-600">
+                    <TrendingUp size={16} />
+                    <span>{stat.trend}</span>
+                    <span className="text-gray-500 font-normal">from yesterday</span>
+                  </div>
                 )}
                 {stat.alert && (
-                  <p className="text-sm text-warning-600 mt-1">
-                    Needs attention
-                  </p>
+                  <div className="flex items-center gap-1 text-sm font-medium text-warning-600 animate-pulse-soft">
+                    <AlertCircle size={16} />
+                    <span>Needs attention</span>
+                  </div>
                 )}
               </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={stat.color} size={24} />
+              <div className={`p-4 rounded-2xl ${stat.bgColor} shadow-soft`}>
+                <stat.icon className={stat.color} size={28} />
               </div>
             </div>
           </Card>
@@ -183,37 +189,31 @@ const Dashboard = () => {
       </div>
       
       {/* Quick actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {quickActions.map((action, index) => (
             <Card
               key={index}
-              variant="elevated"
-              hoverable
+              className="group cursor-pointer bg-white shadow-medium hover:shadow-strong transition-all duration-300 hover:-translate-y-2 border border-gray-100"
               onClick={() => navigate(action.path)}
-              padding="default"
             >
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-4 rounded-full bg-${action.color}-50 mb-3`}>
-                  <action.icon className={`text-${action.color}-600`} size={32} />
+              <div className="flex flex-col items-center text-center p-6">
+                <div className={`p-5 rounded-2xl bg-gradient-to-br from-${action.color}-50 to-${action.color}-100 mb-4 group-hover:scale-110 transition-transform duration-300 shadow-soft`}>
+                  <action.icon className={`text-${action.color}-600`} size={36} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">
                   {action.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                   {action.description}
                 </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={ArrowRight}
-                  iconPosition="right"
-                >
-                  Go
-                </Button>
+                <div className="flex items-center gap-2 text-primary-600 font-medium text-sm group-hover:gap-3 transition-all">
+                  <span>Get Started</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             </Card>
           ))}
@@ -222,20 +222,23 @@ const Dashboard = () => {
       
       {/* Low stock alert */}
       {stats.lowStockItems > 0 && (
-        <Card variant="outlined" className="border-warning-300 bg-warning-50">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="text-warning-600 flex-shrink-0" size={24} />
+        <Card className="animate-slide-up border-warning-200 bg-gradient-to-r from-warning-50 to-warning-100/50 shadow-medium" style={{ animationDelay: '600ms' }}>
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-warning-100 rounded-xl">
+              <AlertCircle className="text-warning-600" size={24} />
+            </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-warning-900 mb-1">
+              <h3 className="font-bold text-warning-900 mb-2 text-lg">
                 Low Stock Alert
               </h3>
-              <p className="text-sm text-warning-800 mb-3">
-                You have {stats.lowStockItems} item(s) running low on stock. Consider restocking soon.
+              <p className="text-warning-800 mb-4">
+                You have <span className="font-bold">{stats.lowStockItems}</span> item(s) running low on stock. Consider restocking soon to avoid stockouts.
               </p>
               <Button
                 variant="warning"
                 size="sm"
                 onClick={() => navigate('/inventory')}
+                className="btn-shine shadow-soft hover:shadow-medium"
               >
                 View Inventory
               </Button>

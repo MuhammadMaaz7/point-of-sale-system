@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Ticket, Plus, Edit, Trash2 } from 'lucide-react';
+import { Ticket, Plus, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 import { useToastContext } from '../../context/ToastContext';
 import Card from '../../components/common/Card/Card';
@@ -95,7 +95,11 @@ const Coupons = () => {
   const handleEdit = async (values) => {
     setSubmitting(true);
     try {
-      await api.put(`/coupons/${selectedCoupon.couponCode}`, values);
+      // Keep the current isActive status when editing
+      await api.put(`/coupons/${selectedCoupon.couponCode}`, {
+        ...values,
+        isActive: selectedCoupon.isActive
+      });
       success('Coupon updated successfully');
       setShowEditModal(false);
       setSelectedCoupon(null);
@@ -116,6 +120,24 @@ const Coupons = () => {
       loadCoupons();
     } catch (err) {
       showError(err.message || 'Failed to delete coupon');
+    }
+  };
+
+  const handleToggleActive = async (coupon) => {
+    try {
+      await api.put(`/coupons/${coupon.couponCode}`, {
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        minPurchaseAmount: coupon.minPurchaseAmount,
+        maxDiscountAmount: coupon.maxDiscountAmount || null,
+        expirationDate: coupon.expirationDate ? coupon.expirationDate.split('T')[0] : null,
+        usageLimit: coupon.usageLimit,
+        isActive: !coupon.isActive
+      });
+      success(`Coupon ${!coupon.isActive ? 'activated' : 'deactivated'} successfully`);
+      loadCoupons();
+    } catch (err) {
+      showError(err.message || 'Failed to update coupon');
     }
   };
 
@@ -158,14 +180,25 @@ const Coupons = () => {
       render: (value, row) => `${value}${row.usageLimit > 0 ? ` / ${row.usageLimit}` : ''}`
     },
     { 
-      key: 'isValid', 
+      key: 'isActive', 
       label: 'Status',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded text-xs font-medium ${
-          value ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'
-        }`}>
-          {value ? 'Active' : 'Inactive'}
-        </span>
+      render: (value, row) => (
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded text-xs font-medium ${
+            value ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'
+          }`}>
+            {value ? 'Active' : 'Inactive'}
+          </span>
+          <button
+            onClick={() => handleToggleActive(row)}
+            className={`p-1 rounded hover:bg-gray-100 transition-colors ${
+              value ? 'text-success-600' : 'text-gray-400'
+            }`}
+            title={value ? 'Deactivate' : 'Activate'}
+          >
+            {value ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+          </button>
+        </div>
       )
     },
     {
@@ -210,18 +243,18 @@ const Coupons = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between animate-slide-up">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Coupons</h1>
-          <p className="text-gray-600 mt-1">Manage discount coupons</p>
+          <h1 className="text-3xl font-bold text-gradient mb-2">Coupon Management</h1>
+          <p className="text-gray-600 text-lg">Manage discount coupons</p>
         </div>
-        <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
+        <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)} className="btn-shine shadow-medium hover:shadow-strong">
           Add Coupon
         </Button>
       </div>
 
-      <Card>
+      <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in" style={{ animationDelay: '100ms' }}>
         <Table
           columns={columns}
           data={coupons}

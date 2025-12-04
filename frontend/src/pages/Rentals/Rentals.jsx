@@ -216,7 +216,7 @@ const Rentals = () => {
     }
   };
 
-  const columns = [
+  const baseColumns = [
     { key: 'rentalId', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'category', label: 'Category' },
@@ -235,35 +235,37 @@ const Rentals = () => {
         </span>
       )
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      sortable: false,
-      render: (_, rental) => (
-        isAdmin() && (
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={Edit}
-              onClick={() => openEditModal(rental)}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={Trash2}
-              onClick={() => handleDelete(rental)}
-              className="text-danger-600 hover:text-danger-700"
-            >
-              Delete
-            </Button>
-          </div>
-        )
-      ),
-    },
   ];
+
+  const actionsColumn = {
+    key: 'actions',
+    label: 'Actions',
+    sortable: false,
+    render: (_, rental) => (
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={Edit}
+          onClick={() => openEditModal(rental)}
+        >
+          Edit
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={Trash2}
+          onClick={() => handleDelete(rental)}
+          className="text-danger-600 hover:text-danger-700"
+        >
+          Delete
+        </Button>
+      </div>
+    ),
+  };
+
+  // Only show actions column for admins
+  const columns = isAdmin() ? [...baseColumns, actionsColumn] : baseColumns;
 
   const activeRentalColumns = [
     { key: 'id', label: 'Rental #' },
@@ -298,18 +300,19 @@ const Rentals = () => {
   if (loading) return <LoadingPage message="Loading rentals..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-slide-up">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rentals</h1>
-          <p className="text-gray-600 mt-1">Manage rental items and transactions</p>
+          <h1 className="text-3xl font-bold text-gradient mb-2">Rental Management</h1>
+          <p className="text-gray-600 text-lg">Manage rental items and transactions</p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="success"
             icon={Package}
             onClick={() => setShowProcessModal(true)}
+            className="shadow-soft hover:shadow-medium"
           >
             Process Rental
           </Button>
@@ -317,6 +320,7 @@ const Rentals = () => {
             variant="warning"
             icon={RotateCcw}
             onClick={() => setShowReturnModal(true)}
+            className="shadow-soft hover:shadow-medium"
           >
             Process Return
           </Button>
@@ -325,6 +329,7 @@ const Rentals = () => {
               variant="primary"
               icon={Plus}
               onClick={() => setShowAddModal(true)}
+              className="btn-shine shadow-medium hover:shadow-strong"
             >
               Add Rental Item
             </Button>
@@ -358,7 +363,7 @@ const Rentals = () => {
 
       {/* Rental Catalog Table */}
       {activeTab === 'catalog' && (
-        <Card>
+        <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in">
           <Table
             columns={columns}
             data={rentals}
@@ -373,7 +378,7 @@ const Rentals = () => {
 
       {/* Active Rentals Table */}
       {activeTab === 'active' && (
-        <Card>
+        <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in">
           <Table
             columns={activeRentalColumns}
             data={activeRentals}

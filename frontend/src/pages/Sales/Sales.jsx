@@ -84,24 +84,25 @@ const Sales = () => {
   if (loading) return <LoadingPage message="Loading sales..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-slide-up">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sales</h1>
-          <p className="text-gray-600 mt-1">View all sales transactions</p>
+          <h1 className="text-3xl font-bold text-gradient mb-2">Sales Transactions</h1>
+          <p className="text-gray-600 text-lg">View and manage all sales</p>
         </div>
         <Button
           variant="primary"
           icon={Plus}
           onClick={() => navigate('/sales/new')}
+          className="btn-shine shadow-medium hover:shadow-strong"
         >
           New Sale
         </Button>
       </div>
 
       {/* Sales table */}
-      <Card>
+      <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in" style={{ animationDelay: '100ms' }}>
         <Table
           columns={columns}
           data={sales}

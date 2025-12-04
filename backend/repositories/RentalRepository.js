@@ -95,6 +95,7 @@ class RentalRepository extends BaseRepository {
         ur.phoneNumber,
         ur.rentalId,
         r.name as rentalName,
+        ur.quantity,
         ur.rentalDate,
         ur.dueDate,
         ur.lateFee,
@@ -110,14 +111,15 @@ class RentalRepository extends BaseRepository {
 
   async createUserRental(data) {
     const query = `
-      INSERT INTO user_rentals (phoneNumber, rentalId, rentalDate, dueDate) 
-      VALUES (?, ?, ?, ?)
+      INSERT INTO user_rentals (phoneNumber, rentalId, quantity, rentalDate, dueDate) 
+      VALUES (?, ?, ?, ?, ?)
     `;
     
     try {
       const [result] = await this.pool.execute(query, [
         data.phoneNumber,
         data.rentalId,
+        data.quantity || 1,
         data.rentalDate,
         data.dueDate
       ]);
@@ -131,6 +133,7 @@ class RentalRepository extends BaseRepository {
         const [result] = await this.pool.execute(query, [
           data.phoneNumber,
           data.rentalId,
+          data.quantity || 1,
           data.rentalDate,
           data.dueDate
         ]);
@@ -148,6 +151,7 @@ class RentalRepository extends BaseRepository {
         ur.phoneNumber,
         ur.rentalId,
         r.name as rentalName,
+        ur.quantity,
         ur.rentalDate,
         ur.dueDate,
         ur.lateFee,

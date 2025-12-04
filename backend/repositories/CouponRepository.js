@@ -7,7 +7,7 @@ import Coupon from '../models/Coupon.js';
 
 class CouponRepository extends BaseRepository {
   async findAll() {
-    const query = 'SELECT * FROM coupons WHERE isActive = 1';
+    const query = 'SELECT * FROM coupons ORDER BY createdAt DESC';
     const [rows] = await this.pool.execute(query);
     return rows.map(row => new Coupon(row));
   }
@@ -17,9 +17,19 @@ class CouponRepository extends BaseRepository {
   }
 
   async findByCode(couponCode) {
-    const query = 'SELECT * FROM coupons WHERE couponCode = ? AND isActive = 1';
+    const query = 'SELECT * FROM coupons WHERE couponCode = ?';
     const [rows] = await this.pool.execute(query, [couponCode.toUpperCase()]);
     return rows.length > 0 ? new Coupon(rows[0]) : null;
+  }
+
+  async findActive() {
+    const query = `SELECT * FROM coupons 
+                   WHERE isActive = 1 
+                   AND (expirationDate IS NULL OR expirationDate >= CURDATE())
+                   AND (usageLimit = 0 OR usageCount < usageLimit)
+                   ORDER BY createdAt DESC`;
+    const [rows] = await this.pool.execute(query);
+    return rows.map(row => new Coupon(row));
   }
 
   async create(couponData) {
@@ -43,16 +53,25 @@ class CouponRepository extends BaseRepository {
   }
 
   async update(couponCode, couponData) {
+    // Convert empty strings to null for optional fields
+    const maxDiscount = couponData.maxDiscountAmount === '' || couponData.maxDiscountAmount === null 
+      ? null 
+      : couponData.maxDiscountAmount;
+    const expDate = couponData.expirationDate === '' || couponData.expirationDate === null 
+      ? null 
+      : couponData.expirationDate.split('T')[0]; // Extract date only
+    
     const query = `UPDATE coupons SET discountType = ?, discountValue = ?, 
                    minPurchaseAmount = ?, maxDiscountAmount = ?, expirationDate = ?, 
-                   usageLimit = ?, updatedAt = NOW() WHERE couponCode = ?`;
+                   usageLimit = ?, isActive = ?, updatedAt = NOW() WHERE couponCode = ?`;
     await this.pool.execute(query, [
       couponData.discountType,
       couponData.discountValue,
       couponData.minPurchaseAmount,
-      couponData.maxDiscountAmount,
-      couponData.expirationDate,
+      maxDiscount,
+      expDate,
       couponData.usageLimit,
+      couponData.isActive !== undefined ? couponData.isActive : true,
       couponCode
     ]);
     return this.findByCode(couponCode);
@@ -65,7 +84,7 @@ class CouponRepository extends BaseRepository {
   }
 
   async delete(couponCode) {
-    const query = 'UPDATE coupons SET isActive = 0, updatedAt = NOW() WHERE couponCode = ?';
+    const query = 'DELETE FROM coupons WHERE couponCode = ?';
     await this.pool.execute(query, [couponCode]);
     return true;
   }

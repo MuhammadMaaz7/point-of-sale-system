@@ -216,7 +216,7 @@ const Employees = () => {
       </div>
 
       {/* Employees table */}
-      <Card>
+      <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in" style={{ animationDelay: '100ms' }}>
         <Table
           columns={columns}
           data={employees}

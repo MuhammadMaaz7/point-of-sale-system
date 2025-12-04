@@ -49,24 +49,8 @@ import Rentals from './pages/Rentals/Rentals';
 import Reports from './pages/Reports/Reports';
 import Employees from './pages/Employees/Employees';
 import Coupons from './pages/Coupons/Coupons';
-
-// Placeholder components for routes (to be implemented)
-const ProfilePage = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Page</h2>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  </div>
-);
-const SettingsPage = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Settings Page</h2>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  </div>
-);
+import Profile from './pages/Profile/Profile';
+import Settings from './pages/Settings/Settings';
 const NotFoundPage = () => {
   const navigate = useNavigate();
   
@@ -143,11 +127,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'profile',
-        element: <ProfilePage />,
+        element: <Profile />,
       },
       {
         path: 'settings',
-        element: <SettingsPage />,
+        element: <Settings />,
       },
     ],
   },

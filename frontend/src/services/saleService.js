@@ -45,6 +45,14 @@ const saleService = {
       reason
     });
     return response.data;
+  },
+
+  /**
+   * Get active coupons
+   */
+  getActiveCoupons: async () => {
+    const response = await api.get('/coupons/active');
+    return response.data;
   }
 };
 

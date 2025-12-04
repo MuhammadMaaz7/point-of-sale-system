@@ -9,7 +9,7 @@ router.get('/sales', authenticate, authorize(['Admin', 'Cashier']), reportContro
 // Inventory report
 router.get('/inventory', authenticate, authorize(['Admin', 'Cashier']), reportController.getInventoryReport);
 // Rental report
-router.get('/rentals', authenticate, authorize(['Admin']), reportController.getRentalReport);
+router.get('/rentals', authenticate, authorize(['Admin', 'Cashier']), reportController.getRentalReport);
 // Top selling items
 router.get('/top-selling', authenticate, authorize(['Admin']), reportController.getTopSellingItems);
 // Employee performance

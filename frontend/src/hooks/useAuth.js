@@ -106,6 +106,13 @@ export const useAuth = () => {
     return user?.role === ROLES.CASHIER;
   }, [user]);
 
+  // Update user data
+  const updateUser = useCallback((userData) => {
+    setUser(userData);
+    // Update localStorage
+    authService.updateUserData(userData);
+  }, []);
+
   return {
     user,
     loading,
@@ -117,6 +124,7 @@ export const useAuth = () => {
     hasRole,
     isAdmin,
     isCashier,
+    updateUser,
     isAuthenticated: !!user
   };
 };

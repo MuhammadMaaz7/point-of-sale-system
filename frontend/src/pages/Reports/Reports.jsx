@@ -50,10 +50,6 @@ const Reports = () => {
   };
 
   const loadRentalReport = async () => {
-    if (!isAdmin()) {
-      showError('Admin access required');
-      return;
-    }
     setLoading(true);
     try {
       const data = await reportService.getRentalReport(startDate, endDate);
@@ -128,7 +124,7 @@ const Reports = () => {
   const tabs = [
     { id: 'sales', label: 'Sales Report', roles: ['Admin', 'Cashier'] },
     { id: 'inventory', label: 'Inventory Report', roles: ['Admin', 'Cashier'] },
-    { id: 'rentals', label: 'Rental Report', roles: ['Admin'] },
+    { id: 'rentals', label: 'Rental Report', roles: ['Admin', 'Cashier'] },
   ];
 
   const filteredTabs = tabs.filter(tab => 
@@ -136,15 +132,15 @@ const Reports = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-gray-600 mt-1">Generate and view business reports</p>
+      <div className="animate-slide-up">
+        <h1 className="text-3xl font-bold text-gradient mb-2">Business Reports</h1>
+        <p className="text-gray-600 text-lg">Generate and view business reports</p>
       </div>
 
       {/* Tabs */}
-      <Card padding="none">
+      <Card className="bg-white shadow-medium border border-gray-100 animate-fade-in" padding="none">
         <div className="border-b border-gray-200">
           <div className="flex">
             {filteredTabs.map(tab => (

@@ -94,6 +94,13 @@ const authService = {
   },
 
   /**
+   * Update stored user data
+   */
+  updateUserData: (userData) => {
+    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+  },
+
+  /**
    * Get user role
    */
   getUserRole: () => {

@@ -26,14 +26,17 @@ const NewSale = () => {
   
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  const [selectedCoupon, setSelectedCoupon] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     loadItems();
+    loadCoupons();
   }, []);
 
   const loadItems = async () => {
@@ -45,6 +48,15 @@ const NewSale = () => {
       showError('Failed to load items');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCoupons = async () => {
+    try {
+      const response = await saleService.getActiveCoupons();
+      setCoupons(response);
+    } catch (err) {
+      console.error('Failed to load coupons:', err);
     }
   };
 
@@ -79,16 +91,48 @@ const NewSale = () => {
   };
 
   const handleApplyCoupon = () => {
-    // Simplified coupon logic - in real app, validate with backend
-    if (couponCode === 'SAVE10') {
-      setDiscount(getSubtotal() * 0.10);
-      success('Coupon applied: 10% off');
-    } else if (couponCode === 'SAVE20') {
-      setDiscount(getSubtotal() * 0.20);
-      success('Coupon applied: 20% off');
-    } else {
-      showError('Invalid coupon code');
+    if (!selectedCoupon) {
+      showError('Please select a coupon');
+      return;
     }
+
+    const coupon = coupons.find(c => c.couponCode === selectedCoupon);
+    if (!coupon) {
+      showError('Invalid coupon');
+      return;
+    }
+
+    const subtotal = getSubtotal();
+
+    // Check minimum purchase amount
+    if (subtotal < coupon.minPurchaseAmount) {
+      showError(`Minimum purchase of ${formatCurrency(coupon.minPurchaseAmount)} required`);
+      return;
+    }
+
+    // Calculate discount
+    let discountAmount = 0;
+    if (coupon.discountType === 'percentage') {
+      discountAmount = subtotal * (coupon.discountValue / 100);
+    } else {
+      discountAmount = coupon.discountValue;
+    }
+
+    // Apply max discount limit if set
+    if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+      discountAmount = coupon.maxDiscountAmount;
+    }
+
+    setDiscount(discountAmount);
+    setAppliedCoupon(coupon);
+    success(`Coupon applied: ${coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : formatCurrency(coupon.discountValue)} off`);
+  };
+
+  const handleRemoveCoupon = () => {
+    setDiscount(0);
+    setAppliedCoupon(null);
+    setSelectedCoupon('');
+    success('Coupon removed');
   };
 
   const handleCheckout = () => {
@@ -107,13 +151,14 @@ const NewSale = () => {
           itemId: item.itemId,
           quantity: item.quantity,
         })),
-        couponCode: couponCode || null,
+        couponCode: appliedCoupon?.couponCode || null,
       };
       
       const sale = await saleService.createSale(saleData.items, saleData.couponCode);
       success('Sale completed successfully!');
       clearCart();
-      setCouponCode('');
+      setSelectedCoupon('');
+      setAppliedCoupon(null);
       setDiscount(0);
       setShowPaymentModal(false);
       navigate('/sales');
@@ -135,11 +180,14 @@ const NewSale = () => {
   const tax = getTax();
   const total = getTotal(discount);
 
+  // Filter coupons based on current subtotal - only show coupons where min purchase is met
+  const availableCoupons = coupons.filter(coupon => subtotal >= coupon.minPurchaseAmount);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Items Grid */}
       <div className="lg:col-span-2 space-y-4">
-        <Card>
+        <Card className="bg-white shadow-medium border border-gray-100">
           <Input
             placeholder="Search items..."
             value={searchTerm}
@@ -151,9 +199,8 @@ const NewSale = () => {
           {filteredItems.map((item) => (
             <Card
               key={item.itemId}
-              hoverable
               onClick={() => handleAddToCart(item)}
-              className="cursor-pointer"
+              className="cursor-pointer bg-white shadow-medium hover:shadow-strong transition-all duration-300 hover:-translate-y-1 border border-gray-100"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -172,7 +219,7 @@ const NewSale = () => {
         </div>
 
         {filteredItems.length === 0 && (
-          <Card>
+          <Card className="bg-white shadow-medium border border-gray-100">
             <p className="text-center text-gray-500 py-8">No items found</p>
           </Card>
         )}
@@ -180,7 +227,7 @@ const NewSale = () => {
 
       {/* Cart */}
       <div className="space-y-4">
-        <Card>
+        <Card className="bg-white shadow-medium border border-gray-100 sticky top-4">
           <div className="flex items-center gap-2 mb-4">
             <ShoppingCart size={24} className="text-primary-600" />
             <h2 className="text-xl font-bold text-gray-900">Cart</h2>
@@ -228,24 +275,74 @@ const NewSale = () => {
 
         {/* Coupon */}
         {cartItems.length > 0 && (
-          <Card>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                icon={Tag}
-              />
-              <Button variant="outline" onClick={handleApplyCoupon}>
-                Apply
-              </Button>
+          <Card className="bg-white shadow-medium border border-gray-100">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Apply Discount Coupon
+              </label>
+              {!appliedCoupon ? (
+                <>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedCoupon}
+                      onChange={(e) => setSelectedCoupon(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={availableCoupons.length === 0}
+                    >
+                      <option value="">
+                        {availableCoupons.length === 0 
+                          ? 'No coupons available for current total' 
+                          : 'Select a coupon'}
+                      </option>
+                      {availableCoupons.map((coupon) => (
+                        <option key={coupon.couponCode} value={coupon.couponCode}>
+                          {coupon.couponCode} - {coupon.discountType === 'percentage' 
+                            ? `${coupon.discountValue}% off` 
+                            : `${formatCurrency(coupon.discountValue)} off`}
+                          {coupon.minPurchaseAmount > 0 && ` (Min: ${formatCurrency(coupon.minPurchaseAmount)})`}
+                        </option>
+                      ))}
+                    </select>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleApplyCoupon}
+                      disabled={availableCoupons.length === 0}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                  {availableCoupons.length === 0 && coupons.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add more items to unlock available coupons
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-between p-3 bg-success-50 border border-success-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Tag size={16} className="text-success-600" />
+                    <span className="font-medium text-success-900">{appliedCoupon.couponCode}</span>
+                    <span className="text-sm text-success-700">
+                      ({appliedCoupon.discountType === 'percentage' 
+                        ? `${appliedCoupon.discountValue}%` 
+                        : formatCurrency(appliedCoupon.discountValue)} off)
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="text-success-600 hover:text-success-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
           </Card>
         )}
 
         {/* Total */}
         {cartItems.length > 0 && (
-          <Card>
+          <Card className="bg-white shadow-medium border border-gray-100">
             <div className="space-y-2">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>

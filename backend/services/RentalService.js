@@ -190,12 +190,14 @@ class RentalService {
         continue;
       }
 
-      // Calculate late fees
-      const daysLate = this.calculateDaysLate(userRental.dueDate, returnDate);
-      const lateFee = this.calculateLateFee(rental.rentalPrice, daysLate);
+      const quantity = userRental.quantity || 1;
 
-      // Update rental availability (return the item)
-      await this.rentalRepo.updateAvailability(userRental.rentalId, 1);
+      // Calculate late fees (based on total rental price for all items)
+      const daysLate = this.calculateDaysLate(userRental.dueDate, returnDate);
+      const lateFee = this.calculateLateFee(rental.rentalPrice * quantity, daysLate);
+
+      // Update rental availability (return all items)
+      await this.rentalRepo.updateAvailability(userRental.rentalId, quantity);
 
       // Mark the user rental as returned
       await this.rentalRepo.markAsReturned(userRental.id, returnDate, lateFee);
@@ -203,7 +205,7 @@ class RentalService {
       processedItems.push({
         rentalId: rental.rentalId,
         name: rental.name,
-        quantity: 1,
+        quantity: quantity,
         daysLate,
         lateFee
       });
