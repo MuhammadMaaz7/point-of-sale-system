@@ -19,20 +19,45 @@ class ItemRepository extends BaseRepository {
   }
 
   async create(itemData) {
+    // Auto-generate itemId if not provided
+    if (!itemData.itemId) {
+      itemData.itemId = await this.generateNextItemId();
+    }
+    
     const item = new Item(itemData);
     item.validate();
     
     const query = `INSERT INTO items (itemId, name, price, quantity, category) 
                    VALUES (?, ?, ?, ?, ?)`;
-    await this.pool.execute(query, [
-      item.itemId,
-      item.name,
-      item.price,
-      item.quantity,
-      item.category
-    ]);
+    
+    try {
+      await this.pool.execute(query, [
+        item.itemId,
+        item.name,
+        item.price,
+        item.quantity,
+        item.category
+      ]);
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        throw new Error(`Item ID ${item.itemId} already exists`);
+      }
+      throw error;
+    }
     
     return this.findById(item.itemId);
+  }
+
+  async generateNextItemId() {
+    const query = 'SELECT itemId FROM items ORDER BY CAST(itemId AS UNSIGNED) DESC LIMIT 1';
+    const [rows] = await this.pool.execute(query);
+    
+    if (rows.length === 0) {
+      return '1001'; // Start from 1001
+    }
+    
+    const lastId = parseInt(rows[0].itemId);
+    return String(lastId + 1);
   }
 
   async update(itemId, itemData) {

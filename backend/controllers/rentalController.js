@@ -136,3 +136,84 @@ export const returnItem = async (req, res, next) => {
     next(error);
   }
 };
+
+export const processRental = async (req, res, next) => {
+  try {
+    const { phoneNumber, items } = req.body;
+
+    if (!phoneNumber || !items || items.length === 0) {
+      return res.status(400).json({ 
+        error: 'Phone number and items required' 
+      });
+    }
+
+    const rentalService = getRentalService();
+    const result = await rentalService.processRental(phoneNumber, items);
+    
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const processReturn = async (req, res, next) => {
+  try {
+    const { phoneNumber, items } = req.body;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ 
+        error: 'Phone number required' 
+      });
+    }
+
+    const rentalService = getRentalService();
+    const result = await rentalService.processReturn(phoneNumber, items || []);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getOutstandingRentals = async (req, res, next) => {
+  try {
+    const { phoneNumber } = req.query;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ 
+        error: 'Phone number required' 
+      });
+    }
+
+    const rentalService = getRentalService();
+    const rentals = await rentalService.getOutstandingRentals(phoneNumber);
+    
+    res.json({
+      success: true,
+      data: rentals
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getActiveRentals = async (req, res, next) => {
+  try {
+    const pool = getPool();
+    const rentalRepo = new RentalRepository(pool);
+    const activeRentals = await rentalRepo.findActiveRentals();
+    
+    res.json({
+      success: true,
+      data: activeRentals
+    });
+  } catch (error) {
+    next(error);
+  }
+};

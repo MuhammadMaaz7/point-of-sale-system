@@ -61,6 +61,10 @@ class EmployeeRepository extends BaseRepository {
       fields.push('passwordHash = ?');
       values.push(data.passwordHash);
     }
+    if (data.isActive !== undefined) {
+      fields.push('isActive = ?');
+      values.push(data.isActive);
+    }
     
     fields.push('updatedAt = NOW()');
     values.push(employeeId);

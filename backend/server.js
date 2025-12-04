@@ -12,6 +12,7 @@ import salesRoutes from './routes/sales.js';
 import rentalsRoutes from './routes/rentals.js';
 import inventoryRoutes from './routes/inventory.js';
 import reportsRoutes from './routes/reports.js';
+import couponRoutes from './routes/coupons.js';
 
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -32,6 +33,7 @@ app.use('/api/sales', salesRoutes);
 app.use('/api/rentals', rentalsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/coupons', couponRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

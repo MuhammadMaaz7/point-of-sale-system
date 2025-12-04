@@ -48,6 +48,7 @@ class SaleItem {
       itemName: this.itemName,
       quantity: this.quantity,
       unitPrice: this.unitPrice,
+      price: this.unitPrice, // Alias for frontend compatibility
       lineTotal: this.lineTotal,
       createdAt: this.createdAt
     };

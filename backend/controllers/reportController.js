@@ -32,8 +32,30 @@ export const getTopSellingItems = async (req, res, next) => {
 export const getSalesReport = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
-    const reportService = getReportService();
-    const report = await reportService.getSalesReport(startDate, endDate);
+    const pool = getPool();
+    const saleRepo = new SaleRepository(pool);
+    
+    const sales = await saleRepo.findByDateRange(startDate, endDate);
+    
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+    const averageSale = sales.length > 0 ? totalRevenue / sales.length : 0;
+    
+    const report = {
+      summary: {
+        totalSales: sales.length,
+        totalRevenue,
+        averageSale
+      },
+      data: sales.map(sale => ({
+        saleId: sale.saleId,
+        date: sale.saleDate,
+        employeeId: sale.employeeId,
+        subtotal: sale.subtotal,
+        discount: sale.discountAmount,
+        total: sale.total,
+        coupon: sale.couponCode || 'None'
+      }))
+    };
     
     res.json({
       success: true,
@@ -50,11 +72,25 @@ export const getInventoryReport = async (req, res, next) => {
     const itemRepo = new ItemRepository(pool);
     const items = await itemRepo.findAll();
     
+    const lowStockItems = items.filter(item => item.quantity < 10 && item.quantity > 0);
+    const outOfStockItems = items.filter(item => item.quantity === 0);
+    
     const report = {
-      totalItems: items.length,
-      totalValue: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-      lowStockItems: items.filter(item => item.quantity < 10),
-      items: items
+      summary: {
+        totalItems: items.length,
+        totalValue: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        lowStock: lowStockItems.length,
+        outOfStock: outOfStockItems.length
+      },
+      data: items.map(item => ({
+        itemId: item.itemId,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        price: item.price,
+        totalValue: item.price * item.quantity,
+        status: item.quantity === 0 ? 'Out of Stock' : item.quantity < 10 ? 'Low Stock' : 'In Stock'
+      }))
     };
     
     res.json({
@@ -71,12 +107,25 @@ export const getRentalReport = async (req, res, next) => {
     const pool = getPool();
     const rentalRepo = new RentalRepository(pool);
     const rentals = await rentalRepo.findAll();
+    const activeRentals = await rentalRepo.findActiveRentals();
     
     const report = {
-      totalRentals: rentals.length,
-      totalAvailable: rentals.reduce((sum, r) => sum + r.availableQuantity, 0),
-      totalRented: rentals.reduce((sum, r) => sum + (r.totalQuantity - r.availableQuantity), 0),
-      rentals: rentals
+      summary: {
+        totalItems: rentals.length,
+        totalAvailable: rentals.reduce((sum, r) => sum + r.availableQuantity, 0),
+        totalRented: rentals.reduce((sum, r) => sum + (r.totalQuantity - r.availableQuantity), 0),
+        activeRentals: activeRentals.length
+      },
+      data: rentals.map(rental => ({
+        rentalId: rental.rentalId,
+        name: rental.name,
+        category: rental.category,
+        pricePerDay: rental.rentalPrice,
+        totalQuantity: rental.totalQuantity,
+        available: rental.availableQuantity,
+        rented: rental.totalQuantity - rental.availableQuantity,
+        utilization: `${Math.round(((rental.totalQuantity - rental.availableQuantity) / rental.totalQuantity) * 100)}%`
+      }))
     };
     
     res.json({

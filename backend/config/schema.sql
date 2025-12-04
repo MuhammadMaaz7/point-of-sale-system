@@ -20,12 +20,9 @@ CREATE TABLE IF NOT EXISTS employees (
 
 -- Users table (customers who rent)
 CREATE TABLE IF NOT EXISTS users (
-  userId VARCHAR(20) PRIMARY KEY,
-  phoneNumber VARCHAR(20) NULL,
-  passwordHash VARCHAR(255) NOT NULL,
+  phoneNumber VARCHAR(20) PRIMARY KEY,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_phone (phoneNumber)
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Items table (products for sale)
@@ -60,7 +57,7 @@ CREATE TABLE IF NOT EXISTS rentals (
 -- User Rentals junction table
 CREATE TABLE IF NOT EXISTS user_rentals (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  userId VARCHAR(20) NOT NULL,
+  phoneNumber VARCHAR(20) NOT NULL,
   rentalId VARCHAR(10) NOT NULL,
   rentalDate DATETIME DEFAULT CURRENT_TIMESTAMP,
   dueDate DATETIME NOT NULL,
@@ -69,9 +66,9 @@ CREATE TABLE IF NOT EXISTS user_rentals (
   lateFee DECIMAL(10,2) DEFAULT 0,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (userId) REFERENCES users(userId),
+  FOREIGN KEY (phoneNumber) REFERENCES users(phoneNumber),
   FOREIGN KEY (rentalId) REFERENCES rentals(rentalId),
-  INDEX idx_user (userId),
+  INDEX idx_user (phoneNumber),
   INDEX idx_rental (rentalId),
   INDEX idx_returned (isReturned)
 );

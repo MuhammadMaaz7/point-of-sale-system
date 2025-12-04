@@ -1,39 +1,54 @@
-import axios from 'axios';
+/**
+ * API Configuration
+ * Centralized API endpoint configuration
+ */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
+export const API_ENDPOINTS = {
+  // Authentication
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    USER_LOGIN: '/auth/user/login',
+    ME: '/auth/me',
+    LOGOUT: '/auth/logout',
+    EMPLOYEES: '/auth/employees',
+    EMPLOYEE_BY_ID: (id) => `/auth/employees/${id}`
   },
-});
-
-// Request interceptor
-apiClient.interceptors.request.use(
-  (config) => {
-    // Add auth token if available
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+  
+  // Sales
+  SALES: {
+    BASE: '/sales',
+    BY_ID: (id) => `/sales/${id}`,
+    RETURNS: '/sales/returns'
   },
-  (error) => Promise.reject(error)
-);
+  
+  // Inventory
+  INVENTORY: {
+    BASE: '/inventory',
+    BY_ID: (id) => `/inventory/${id}`
+  },
+  
+  // Rentals
+  RENTALS: {
+    BASE: '/rentals',
+    BY_ID: (id) => `/rentals/${id}`,
+    PROCESS: '/rentals/process',
+    RETURN: '/rentals/return',
+    OUTSTANDING: '/rentals/outstanding',
+    HISTORY: (userId) => `/rentals/history/${userId}`
+  },
+  
+  // Reports
+  REPORTS: {
+    SALES: '/reports/sales',
+    INVENTORY: '/reports/inventory',
+    RENTALS: '/reports/rentals'
+  },
+  
+  // Health
+  HEALTH: '/health'
+};
 
-// Response interceptor
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default apiClient;
+export default API_BASE_URL;

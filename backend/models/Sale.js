@@ -14,6 +14,7 @@ class Sale {
     this.discountAmount = data.discountAmount ? Math.round(data.discountAmount * 100) / 100 : 0;
     this.saleDate = data.saleDate || null;
     this.createdAt = data.createdAt || null;
+    this.items = data.items || [];
   }
 
   // Validation
@@ -45,8 +46,10 @@ class Sale {
       total: this.total,
       couponCode: this.couponCode,
       discountAmount: this.discountAmount,
+      discount: this.discountAmount, // Alias for frontend compatibility
       saleDate: this.saleDate,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
+      items: this.items.map(item => item.toJSON ? item.toJSON() : item)
     };
   }
 }

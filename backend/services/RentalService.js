@@ -102,6 +102,128 @@ class RentalService {
     return Math.round(rentalPrice * this.LATE_FEE_RATE * daysLate * 100) / 100;
   }
 
+  /**
+   * Process rental transaction with multiple items
+   */
+  async processRental(phoneNumber, items) {
+    if (!phoneNumber) {
+      throw new Error('Phone number is required');
+    }
+
+    // Validate phone number format
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      throw new Error('Phone number must be 10 digits');
+    }
+
+    if (!items || items.length === 0) {
+      throw new Error('At least one rental item is required');
+    }
+
+    const rentalDate = new Date();
+    const dueDate = this.calculateDueDate(rentalDate);
+    const processedItems = [];
+
+    // Process each rental item
+    for (const item of items) {
+      const rental = await this.rentalRepo.findById(item.rentalId);
+      if (!rental) {
+        throw new Error(`Rental ${item.rentalId} not found`);
+      }
+
+      const quantity = item.quantity || 1;
+      if (rental.availableQuantity < quantity) {
+        throw new Error(`Insufficient quantity for ${rental.name}. Available: ${rental.availableQuantity}`);
+      }
+
+      // Update rental availability
+      await this.rentalRepo.updateAvailability(item.rentalId, -quantity);
+
+      // Create user rental record (no user account needed)
+      await this.rentalRepo.createUserRental({
+        phoneNumber,
+        rentalId: rental.rentalId,
+        rentalDate,
+        dueDate,
+        quantity
+      });
+
+      processedItems.push({
+        rentalId: rental.rentalId,
+        name: rental.name,
+        rentalPrice: rental.rentalPrice,
+        quantity,
+        totalPrice: rental.rentalPrice * quantity
+      });
+    }
+
+    return {
+      phoneNumber,
+      items: processedItems,
+      rentalDate,
+      dueDate,
+      totalAmount: processedItems.reduce((sum, item) => sum + item.totalPrice, 0)
+    };
+  }
+
+  /**
+   * Process return transaction with multiple items
+   */
+  async processReturn(phoneNumber, items) {
+    if (!phoneNumber) {
+      throw new Error('Phone number is required');
+    }
+
+    const returnDate = new Date();
+    const processedItems = [];
+
+    // Get all outstanding rentals for this phone number
+    const outstandingRentals = await this.rentalRepo.findOutstandingRentalsByPhone(phoneNumber);
+
+    if (outstandingRentals.length === 0) {
+      throw new Error('No outstanding rentals found for this phone number');
+    }
+
+    // Process each outstanding rental
+    for (const userRental of outstandingRentals) {
+      const rental = await this.rentalRepo.findById(userRental.rentalId);
+      if (!rental) {
+        continue;
+      }
+
+      // Calculate late fees
+      const daysLate = this.calculateDaysLate(userRental.dueDate, returnDate);
+      const lateFee = this.calculateLateFee(rental.rentalPrice, daysLate);
+
+      // Update rental availability (return the item)
+      await this.rentalRepo.updateAvailability(userRental.rentalId, 1);
+
+      // Mark the user rental as returned
+      await this.rentalRepo.markAsReturned(userRental.id, returnDate, lateFee);
+
+      processedItems.push({
+        rentalId: rental.rentalId,
+        name: rental.name,
+        quantity: 1,
+        daysLate,
+        lateFee
+      });
+    }
+
+    return {
+      phoneNumber,
+      items: processedItems,
+      returnDate,
+      totalLateFees: processedItems.reduce((sum, item) => sum + item.lateFee, 0)
+    };
+  }
+
+  /**
+   * Get outstanding rentals for a phone number
+   */
+  async getOutstandingRentals(phoneNumber) {
+    return await this.rentalRepo.findOutstandingRentalsByPhone(phoneNumber);
+  }
+
 }
 
 export default RentalService;

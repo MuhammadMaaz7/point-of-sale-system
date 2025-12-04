@@ -62,4 +62,16 @@ const authorize = (roles) => {
   };
 };
 
-export { authenticate, authorize };
+const requireAdmin = (req, res, next) => {
+  if (!req.employee) {
+    return res.status(403).json({ error: 'Employee access required' });
+  }
+
+  if (req.employee.role !== 'Admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  next();
+};
+
+export { authenticate, authorize, requireAdmin };
