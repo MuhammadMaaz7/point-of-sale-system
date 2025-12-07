@@ -111,11 +111,11 @@ npm run dev
 
 ### Admin Account
 - **Employee ID**: `110001`
-- **Password**: `password`
+- **Password**: `admin123`
 
-### Cashier Account
-- **Employee ID**: `110002`
-- **Password**: `password`
+### Cashier Accounts
+- **Employee ID**: `110002` or `110003`
+- **Password**: `cashier123`
 
 > ⚠️ **Important**: Change these credentials in production!
 
