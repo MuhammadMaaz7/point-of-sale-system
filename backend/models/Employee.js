@@ -14,6 +14,11 @@ class Employee {
     this.role = data.role || null;
     this.firstName = data.firstName ? data.firstName.trim() : null;
     this.lastName = data.lastName ? data.lastName.trim() : null;
+    this.contactNumber = data.contactNumber ? data.contactNumber.trim() : null;
+    this.email = data.email ? data.email.trim() : null;
+    this.position = data.position ? data.position.trim() : null;
+    this.department = data.department ? data.department.trim() : null;
+    this.dateOfJoining = data.dateOfJoining || null;
     this.passwordHash = data.passwordHash || null;
     this.isActive = data.isActive !== undefined ? Boolean(data.isActive) : true;
     this.createdAt = data.createdAt || null;
@@ -46,6 +51,43 @@ class Employee {
     if (this.lastName.length > 50) {
       throw new Error('Last name cannot exceed 50 characters');
     }
+    if (!this.contactNumber) {
+      throw new Error('Contact number is required');
+    }
+    const digitsOnly = this.contactNumber.replace(/\D/g, '');
+    if (digitsOnly.length !== 10) {
+      throw new Error('Contact number must be 10 digits');
+    }
+    this.contactNumber = digitsOnly;
+    if (!this.email) {
+      throw new Error('Email is required');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
+      throw new Error('Email must be valid');
+    }
+    if (this.email.length > 100) {
+      throw new Error('Email cannot exceed 100 characters');
+    }
+    if (!this.position) {
+      throw new Error('Position is required');
+    }
+    if (this.position.length > 100) {
+      throw new Error('Position cannot exceed 100 characters');
+    }
+    if (!this.department) {
+      throw new Error('Department is required');
+    }
+    if (this.department.length > 100) {
+      throw new Error('Department cannot exceed 100 characters');
+    }
+    if (!this.dateOfJoining) {
+      throw new Error('Date of joining is required');
+    }
+    const date = new Date(this.dateOfJoining);
+    if (Number.isNaN(date.getTime())) {
+      throw new Error('Date of joining must be a valid date');
+    }
+    this.dateOfJoining = date.toISOString().split('T')[0];
   }
 
   // Virtual for full name
@@ -75,6 +117,11 @@ class Employee {
       role: this.role,
       firstName: this.firstName,
       lastName: this.lastName,
+      contactNumber: this.contactNumber,
+      email: this.email,
+      position: this.position,
+      department: this.department,
+      dateOfJoining: this.dateOfJoining,
       fullName: this.fullName,
       isActive: this.isActive,
       createdAt: this.createdAt,

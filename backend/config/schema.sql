@@ -10,12 +10,19 @@ CREATE TABLE IF NOT EXISTS employees (
   role ENUM('Admin', 'Cashier') NOT NULL,
   firstName VARCHAR(50) NOT NULL,
   lastName VARCHAR(50) NOT NULL,
+  contactNumber VARCHAR(20) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  position VARCHAR(100) NOT NULL,
+  department VARCHAR(100) NOT NULL,
+  dateOfJoining DATE NOT NULL,
   passwordHash VARCHAR(255) NOT NULL,
   isActive BOOLEAN DEFAULT TRUE,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_role (role),
-  INDEX idx_active (isActive)
+  INDEX idx_active (isActive),
+  INDEX idx_department (department),
+  INDEX idx_doj (dateOfJoining)
 );
 
 -- Users table (customers who rent)
@@ -156,9 +163,9 @@ CREATE TABLE IF NOT EXISTS employee_logs (
 );
 
 -- Insert sample data
-INSERT INTO employees (employeeId, role, firstName, lastName, passwordHash) VALUES
-('110001', 'Admin', 'Harry', 'Larry', '$2a$10$YourHashedPasswordHere'),
-('110002', 'Cashier', 'Debra', 'Cooper', '$2a$10$YourHashedPasswordHere');
+INSERT INTO employees (employeeId, role, firstName, lastName, contactNumber, email, position, department, dateOfJoining, passwordHash) VALUES
+('110001', 'Admin', 'Harry', 'Larry', '5550101000', 'harry.larry@example.com', 'HR Manager', 'Human Resources', '2021-03-15', '$2a$10$YourHashedPasswordHere'),
+('110002', 'Cashier', 'Debra', 'Cooper', '5550101001', 'debra.cooper@example.com', 'Senior Cashier', 'Sales', '2022-07-22', '$2a$10$YourHashedPasswordHere');
 
 INSERT INTO items (itemId, name, price, quantity, category) VALUES
 ('1000', 'Potato', 1.00, 249, 'Produce'),

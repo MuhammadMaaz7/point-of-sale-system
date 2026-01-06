@@ -127,11 +127,22 @@ export const getAllEmployees = async (req, res, next) => {
 
 export const addEmployee = async (req, res, next) => {
   try {
-    const { employeeId, firstName, lastName, role, password } = req.body;
+    const { 
+      employeeId, 
+      firstName, 
+      lastName, 
+      role, 
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
+    } = req.body;
     
-    if (!employeeId || !firstName || !lastName || !role || !password) {
+    if (!employeeId || !firstName || !lastName || !role || !password || !contactNumber || !email || !position || !department || !dateOfJoining) {
       return res.status(400).json({ 
-        error: 'All fields are required: employeeId, firstName, lastName, role, password' 
+        error: 'All fields are required: employeeId, firstName, lastName, contactNumber, email, position, department, dateOfJoining, role, password' 
       });
     }
 
@@ -141,7 +152,12 @@ export const addEmployee = async (req, res, next) => {
       firstName,
       lastName,
       role,
-      password
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
     });
     
     res.status(201).json({
@@ -157,14 +173,29 @@ export const addEmployee = async (req, res, next) => {
 export const updateEmployee = async (req, res, next) => {
   try {
     const { employeeId } = req.params;
-    const { firstName, lastName, role, password } = req.body;
+    const { 
+      firstName, 
+      lastName, 
+      role, 
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
+    } = req.body;
 
     const authService = getAuthService();
     const employee = await authService.updateEmployee(employeeId, {
       firstName,
       lastName,
       role,
-      password
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
     });
     
     res.json({

@@ -48,16 +48,22 @@ async function seedData() {
     const cashierPassword = await bcrypt.hash('cashier123', 10);
 
     await connection.execute(
-      'INSERT INTO employees (employeeId, role, firstName, lastName, passwordHash) VALUES (?, ?, ?, ?, ?)',
-      ['110001', 'Admin', 'Admin', 'User', adminPassword]
+      `INSERT INTO employees 
+        (employeeId, role, firstName, lastName, contactNumber, email, position, department, dateOfJoining, passwordHash) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['110001', 'Admin', 'Admin', 'User', '5550100000', 'admin.user@example.com', 'HR Manager', 'Human Resources', '2020-01-15', adminPassword]
     );
     await connection.execute(
-      'INSERT INTO employees (employeeId, role, firstName, lastName, passwordHash) VALUES (?, ?, ?, ?, ?)',
-      ['110002', 'Cashier', 'John', 'Doe', cashierPassword]
+      `INSERT INTO employees 
+        (employeeId, role, firstName, lastName, contactNumber, email, position, department, dateOfJoining, passwordHash) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['110002', 'Cashier', 'John', 'Doe', '5550100001', 'john.doe@example.com', 'Senior Cashier', 'Retail Operations', '2021-05-10', cashierPassword]
     );
     await connection.execute(
-      'INSERT INTO employees (employeeId, role, firstName, lastName, passwordHash) VALUES (?, ?, ?, ?, ?)',
-      ['110003', 'Cashier', 'Jane', 'Smith', cashierPassword]
+      `INSERT INTO employees 
+        (employeeId, role, firstName, lastName, contactNumber, email, position, department, dateOfJoining, passwordHash) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['110003', 'Cashier', 'Jane', 'Smith', '5550100002', 'jane.smith@example.com', 'Cashier', 'Retail Operations', '2022-02-01', cashierPassword]
     );
     
     console.log('✓ Created 3 employees');

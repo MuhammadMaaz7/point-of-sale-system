@@ -28,13 +28,18 @@ class EmployeeRepository extends BaseRepository {
     const employee = new Employee(employeeData);
     employee.validate();
     
-    const query = `INSERT INTO employees (employeeId, role, firstName, lastName, passwordHash) 
-                   VALUES (?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO employees (employeeId, role, firstName, lastName, contactNumber, email, position, department, dateOfJoining, passwordHash) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     await this.pool.execute(query, [
       employee.employeeId,
       employee.role,
       employee.firstName,
       employee.lastName,
+      employee.contactNumber,
+      employee.email,
+      employee.position,
+      employee.department,
+      employee.dateOfJoining,
       employee.passwordHash
     ]);
     
@@ -56,6 +61,26 @@ class EmployeeRepository extends BaseRepository {
     if (data.lastName) {
       fields.push('lastName = ?');
       values.push(data.lastName);
+    }
+    if (data.contactNumber) {
+      fields.push('contactNumber = ?');
+      values.push(data.contactNumber);
+    }
+    if (data.email) {
+      fields.push('email = ?');
+      values.push(data.email);
+    }
+    if (data.position) {
+      fields.push('position = ?');
+      values.push(data.position);
+    }
+    if (data.department) {
+      fields.push('department = ?');
+      values.push(data.department);
+    }
+    if (data.dateOfJoining) {
+      fields.push('dateOfJoining = ?');
+      values.push(data.dateOfJoining);
     }
     if (data.passwordHash) {
       fields.push('passwordHash = ?');

@@ -13,6 +13,7 @@ A modern, full-stack Point of Sale (POS) system built with React, Node.js, Expre
 - **Rental Management** - Handle rental transactions with automatic late fee calculation
 - **Discount Coupons** - Create and manage promotional coupons with various discount types
 - **Employee Management** - Role-based access control (Admin/Cashier)
+- **Employee Profiles** - Capture contact, department, position, and date of joining for every team member
 - **Reports & Analytics** - Generate sales, inventory, and rental reports
 
 ### 🎨 Modern UI/UX

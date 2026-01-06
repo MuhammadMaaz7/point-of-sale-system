@@ -40,12 +40,7 @@ class AuthService {
     );
 
     return { 
-      employee: {
-        employeeId: employee.employeeId,
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        role: employee.role
-      }, 
+      employee: employee.toJSON(), 
       token 
     };
   }
@@ -63,7 +58,18 @@ class AuthService {
    * Replaces EmployeeManagement.add() from Java
    */
   async addEmployee(employeeData) {
-    const { employeeId, firstName, lastName, role, password } = employeeData;
+    const { 
+      employeeId, 
+      firstName, 
+      lastName, 
+      role, 
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
+    } = employeeData;
 
     if (!['Admin', 'Cashier'].includes(role)) {
       throw new Error('Invalid role. Must be Admin or Cashier');
@@ -73,12 +79,48 @@ class AuthService {
       throw new Error('Password must be at least 6 characters');
     }
 
+    if (!contactNumber) {
+      throw new Error('Contact number is required');
+    }
+    const digitsOnlyContact = contactNumber.replace(/\D/g, '');
+    if (digitsOnlyContact.length !== 10) {
+      throw new Error('Contact number must be 10 digits');
+    }
+
+    if (!email) {
+      throw new Error('Email is required');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error('Email must be valid');
+    }
+
+    if (!position) {
+      throw new Error('Position is required');
+    }
+    if (!department) {
+      throw new Error('Department is required');
+    }
+
+    if (!dateOfJoining) {
+      throw new Error('Date of joining is required');
+    }
+    const parsedDate = new Date(dateOfJoining);
+    if (Number.isNaN(parsedDate.getTime())) {
+      throw new Error('Date of joining must be a valid date');
+    }
+    const formattedDate = parsedDate.toISOString().split('T')[0];
+
     const passwordHash = await this.hashPassword(password);
 
     const employee = await this.employeeRepo.create({
       employeeId,
       firstName,
       lastName,
+      contactNumber: digitsOnlyContact,
+      email,
+      position,
+      department,
+      dateOfJoining: formattedDate,
       role,
       passwordHash,
       isActive: true
@@ -92,7 +134,17 @@ class AuthService {
    * Replaces EmployeeManagement.update() from Java
    */
   async updateEmployee(employeeId, updates) {
-    const { firstName, lastName, role, password } = updates;
+    const { 
+      firstName, 
+      lastName, 
+      role, 
+      password,
+      contactNumber,
+      email,
+      position,
+      department,
+      dateOfJoining
+    } = updates;
 
     const employee = await this.employeeRepo.findById(employeeId);
     if (!employee) {
@@ -107,6 +159,28 @@ class AuthService {
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
     if (role) updateData.role = role;
+    if (contactNumber) {
+      const digitsOnlyContact = contactNumber.replace(/\D/g, '');
+      if (digitsOnlyContact.length !== 10) {
+        throw new Error('Contact number must be 10 digits');
+      }
+      updateData.contactNumber = digitsOnlyContact;
+    }
+    if (email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Email must be valid');
+      }
+      updateData.email = email;
+    }
+    if (position) updateData.position = position;
+    if (department) updateData.department = department;
+    if (dateOfJoining) {
+      const parsedDate = new Date(dateOfJoining);
+      if (Number.isNaN(parsedDate.getTime())) {
+        throw new Error('Date of joining must be a valid date');
+      }
+      updateData.dateOfJoining = parsedDate.toISOString().split('T')[0];
+    }
     if (password) {
       if (password.length < 6) {
         throw new Error('Password must be at least 6 characters');
